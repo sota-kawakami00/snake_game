@@ -299,7 +299,6 @@
             color: #721c24;
         }
 
-        /* Email登録モーダル */
         .auth-modal {
             display: none;
             position: fixed;
@@ -346,7 +345,6 @@
             background: var(--button-hover);
         }
 
-        /* メッセージ表示用 */
         .message {
             padding: 15px;
             margin: 10px 0;
@@ -363,6 +361,45 @@
             background: #f8d7da;
             color: #721c24;
         }
+
+        /* New styles for start modal */
+        .start-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .start-modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .start-modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .countdown {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
@@ -373,6 +410,18 @@
         <div id="initialAuthMessage" class="auth-message"></div>
         <input type="email" id="initialEmailInput" placeholder="メールアドレス">
         <button onclick="sendInitialSignInLink()">認証メールを送信</button>
+    </div>
+
+    <!-- 開始確認モーダル -->
+    <div id="startModal" class="start-modal">
+        <div class="start-modal-content">
+            <h2>ゲームを開始しますか？</h2>
+            <div id="countdown" class="countdown" style="display: none;">3</div>
+            <div class="start-modal-buttons">
+                <button onclick="startGameWithCountdown()" class="button" style="background: var(--accent-primary)">はい</button>
+                <button onclick="closeStartModal()" class="button" style="background: var(--danger)">いいえ</button>
+            </div>
+        </div>
     </div>
 
     <!-- ゲームコンテナ -->
@@ -516,8 +565,9 @@
         // グローバル変数
         window.userCoins = 0;
         window.isAuthenticated = false;
+        window.gameStarted = false;
 
-        // 初期認証のEmail Link設定
+        // Email Link認証の設定
         const actionCodeSettings = {
             url: 'http://www.edu.ice.ous.ac.jp/~t22j248/kadai8/kadai8.html',
             handleCodeInApp: true
@@ -551,6 +601,44 @@
                 messageDiv.style.display = 'none';
             }, 3000);
         }
+
+        // 開始確認モーダルの表示
+        function showStartModal() {
+            document.getElementById('startModal').style.display = 'block';
+            document.getElementById('countdown').style.display = 'none';
+        }
+
+        // 開始確認モーダルを閉じる
+        window.closeStartModal = function() {
+            document.getElementById('startModal').style.display = 'none';
+        }
+
+        // カウントダウン付きでゲームを開始
+        window.startGameWithCountdown = function() {
+    const countdownDisplay = document.getElementById('countdown');
+    countdownDisplay.style.display = 'block';
+    const buttons = document.querySelector('.start-modal-buttons');
+    buttons.style.display = 'none';
+    
+    let count = 3;
+    countdownDisplay.textContent = count;
+    
+    const countdownInterval = setInterval(() => {
+        count--;
+        countdownDisplay.textContent = count;
+        
+        if (count <= 0) {
+            clearInterval(countdownInterval);
+            document.getElementById('startModal').style.display = 'none';
+            buttons.style.display = 'flex';
+            window.gameStarted = true;
+            resetGame();
+            gameLoop();
+        }
+    }, 1000);
+}
+
+
         // Email Link認証の確認と処理
         async function checkEmailLink() {
             if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -563,7 +651,6 @@
                     const result = await signInWithEmailLink(auth, email, window.location.href);
                     window.localStorage.removeItem('emailForSignIn');
                     
-                    // ユーザーデータの作成/更新
                     await setDoc(doc(db, 'users', result.user.uid), {
                         email: email,
                         coins: 0,
@@ -598,6 +685,7 @@
         function showGameScreen() {
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('gameContainer').style.display = 'block';
+            showStartModal();
         }
 
         // 認証状態の監視
@@ -775,7 +863,8 @@
 
             if (gameState.isPaused) {
                 ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillRect(0, 0, canvas.
+                width, canvas.height);
                 ctx.fillStyle = "white";
                 ctx.font = "30px Arial";
                 ctx.textAlign = "center";
@@ -806,19 +895,21 @@
         async function didGameEnd() {
     const head = gameState.snake[0];
 
+    if (!gameState.snake.length) return false;
+
     // 壁との衝突をチェック
     if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
         if (!gameState.isGameOver) {
-            await checkAndAwardCoins(gameState.score); // asyncを追加
+            await checkAndAwardCoins(gameState.score);
         }
         return true;
     }
 
     // 自分自身との衝突をチェック
-    for (let i = 1; i < gameState.snake.length; i++) {
+    for (let i = 4; i < gameState.snake.length; i++) {
         if (head.x === gameState.snake[i].x && head.y === gameState.snake[i].y) {
             if (!gameState.isGameOver) {
-                await checkAndAwardCoins(gameState.score); // asyncを追加
+                await checkAndAwardCoins(gameState.score);
             }
             return true;
         }
@@ -860,28 +951,29 @@
         }
 
         function resetGame() {
-            gameState = {
-                snake: [
-                    {x: 200, y: 200},
-                    {x: 190, y: 200},
-                    {x: 180, y: 200},
-                    {x: 170, y: 200},
-                    {x: 160, y: 200}
-                ],
-                food: null,
-                dx: 10,
-                dy: 0,
-                score: 0,
-                speedBoost: 0,
-                baseSpeed: 100,
-                isPaused: false,
-                isGameOver: false
-            };
-            
-            createFood();
-            updateStats();
-            drawGame();
-        }
+    gameState = {
+        snake: [
+            {x: 200, y: 200},
+            {x: 190, y: 200},
+            {x: 180, y: 200},
+            {x: 170, y: 200},
+            {x: 160, y: 200}
+        ],
+        food: null,
+        dx: 10,
+        dy: 0,
+        score: 0,
+        speedBoost: 0,
+        baseSpeed: 100,
+        isPaused: false,
+        isGameOver: false
+    };
+    
+    createFood();
+    updateStats();
+    drawGame();
+}
+
 
         function togglePause() {
             if (!gameState.isGameOver) {
@@ -892,29 +984,35 @@
         }
 
         function gameLoop() {
-            if (!gameState.isGameOver && !gameState.isPaused) {
-                if (didGameEnd()) {
-                    gameState.isGameOver = true;
-                    updateRanking();
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.fillStyle = "white";
-                    ctx.font = "30px Arial";
-                    ctx.textAlign = "center";
-                    ctx.fillText("ゲームオーバー!", canvas.width/2, canvas.height/2 - 20);
-                    ctx.font = "20px Arial";
-                    ctx.fillText(`スコア: ${gameState.score}`, canvas.width/2, canvas.height/2 + 20);
-                    return;
-                }
+    if (!window.gameStarted || gameState.isGameOver) return;
 
-                advanceSnake();
-                drawGame();
+    if (!gameState.isPaused) {
+        didGameEnd().then(isEnded => {
+            if (isEnded) {
+                gameState.isGameOver = true;
+                updateRanking();
+                ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "white";
+                ctx.font = "30px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("ゲームオーバー!", canvas.width/2, canvas.height/2 - 20);
+                ctx.font = "20px Arial";
+                ctx.fillText(`スコア: ${gameState.score}`, canvas.width/2, canvas.height/2 + 20);
+                return;
             }
+
+            advanceSnake();
+            drawGame();
 
             const currentSpeed = Date.now() < gameState.speedBoost ? 
                 gameState.baseSpeed / 2 : gameState.baseSpeed;
             setTimeout(gameLoop, currentSpeed);
-        }
+        });
+    } else {
+        setTimeout(gameLoop, 100);
+    }
+}
 
         // キーボードイベントの処理
         document.addEventListener('keydown', (event) => {
@@ -964,11 +1062,10 @@
         pauseButton.addEventListener('click', togglePause);
         resetButton.addEventListener('click', resetGame);
 
-        // ゲーム開始
+        // ゲーム初期化
         createFood();
         displayRankings();
-        gameLoop();
-    </script>
+        // gameLoop()は自動実行しない - スタートモーダルからの開始を待つ
     </script>
 </body>
 </html>
