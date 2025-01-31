@@ -1,0 +1,562 @@
+/* Base styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: linear-gradient(45deg, #0f0f3d 0%, #000000 100%);
+    font-family: 'Arial', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+}
+
+/* カスタムカーソル */
+.custom-cursor {
+    width: 20px;
+    height: 20px;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: difference;
+}
+
+.cursor-star {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    clip-path: polygon(
+        50% 0%,
+        61% 35%,
+        98% 35%,
+        68% 57%,
+        79% 91%,
+        50% 70%,
+        21% 91%,
+        32% 57%,
+        2% 35%,
+        39% 35%
+    );
+    animation: rotateStar 3s linear infinite;
+}
+
+.cursor-trail {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    clip-path: polygon(
+        50% 0%,
+        61% 35%,
+        98% 35%,
+        68% 57%,
+        79% 91%,
+        50% 70%,
+        21% 91%,
+        32% 57%,
+        2% 35%,
+        39% 35%
+    );
+    animation: rotateStar 3s linear infinite, fadeTrail 1s linear infinite;
+    transform: scale(1.5);
+}
+
+@keyframes rotateStar {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeTrail {
+    0% {
+        opacity: 0.3;
+        transform: scale(1.5) rotate(0deg);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(2) rotate(360deg);
+    }
+}
+
+/* Stars background */
+.stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+}
+
+/* Shooting stars */
+.shooting-star {
+    position: absolute;
+    width: 150px;
+    height: 2px;
+    background: linear-gradient(90deg, #fff, transparent);
+    animation: shooting 3s linear infinite;
+    opacity: 0;
+}
+
+.shooting-star::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -1px;
+    width: 4px;
+    height: 4px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 20px #fff;
+}
+
+@keyframes shooting {
+    0% {
+        transform: translateX(-100px) translateY(100px) rotate(-45deg);
+        opacity: 1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(calc(100vw + 100px)) translateY(-100px) rotate(-45deg);
+        opacity: 0;
+    }
+}
+
+/* Navigation */
+nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+nav ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    gap: 30px;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-button {
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 10px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+/* Hero Section */
+#hero {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.glow {
+    color: #fff;
+    font-size: 4em;
+    text-align: center;
+    animation: glow 2s ease-in-out infinite alternate;
+    margin-bottom: 50px;
+}
+
+/* テキストのホバーエフェクト */
+.wobble-text {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.wobble-text:hover {
+    animation: wobble 0.5s ease infinite;
+    color: #00ff95;
+    text-shadow: 0 0 20px #00ff95;
+}
+
+@keyframes wobble {
+    0% {
+        transform: translate(0) rotate(0);
+    }
+    20% {
+        transform: translate(-2px, 2px) rotate(-3deg);
+    }
+    40% {
+        transform: translate(-2px, -2px) rotate(-3deg);
+    }
+    60% {
+        transform: translate(2px, 2px) rotate(3deg);
+    }
+    80% {
+        transform: translate(2px, -2px) rotate(3deg);
+    }
+    100% {
+        transform: translate(0) rotate(0);
+    }
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #0073e6, 0 0 20px #0073e6;
+    }
+    to {
+        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #0073e6, 0 0 40px #0073e6;
+    }
+}
+
+/* Planet */
+.planet {
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle at 30% 30%, #4a90e2, #1c2951);
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 
+        inset -25px -25px 40px rgba(0,0,0,.5),
+        0 0 50px rgba(74, 144, 226, 0.3);
+    margin: 50px;
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Button Styles */
+.explore-btn {
+    padding: 15px 30px;
+    font-size: 18px;
+    color: #fff;
+    background: transparent;
+    border: 2px solid #fff;
+    border-radius: 30px;
+    cursor: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.explore-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+/* Content Section */
+#content {
+    min-height: 100vh;
+    padding: 50px 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.card {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.1);
+    z-index: 1;
+}
+
+.card h2 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.card p {
+    font-size: 1.2em;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ホバー時のリンクとボタンのスタイル */
+.nav-button:hover .wobble-text,
+.explore-btn:hover .wobble-text {
+    animation: wobble 0.5s ease infinite;
+    color: #00ff95;
+    text-shadow: 0 0 20px #00ff95;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+    .glow {
+        font-size: 2.5em;
+    }
+
+    .planet {
+        width: 150px;
+        height: 150px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    .card h2 {
+        font-size: 2em;
+    }
+
+    .card p {
+        font-size: 1em;
+    }
+
+    nav ul {
+        gap: 15px;
+    }
+
+    .nav-button {
+        font-size: 16px;
+        padding: 8px 16px;
+    }
+}
+
+/* アクセシビリティ対応 */
+@media (prefers-reduced-motion: reduce) {
+    .wobble-text:hover {
+        animation: none;
+    }
+
+    .planet {
+        animation: none;
+    }
+
+    .cursor-star,
+    .cursor-trail {
+        animation: none;
+    }
+}
+
+/* Assignment List Styles */
+.assignment-list {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: left;
+    padding: 20px;
+}
+
+.assignment-item {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.assignment-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(10px);
+}
+
+.assignment-item .date {
+    min-width: 100px;
+    color: #00ff95;
+    font-family: monospace;
+    font-size: 1.1em;
+}
+
+.assignment-item .title {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+}
+
+.assignment-item .title:hover {
+    color: #00ff95;
+    text-shadow: 0 0 10px #00ff95;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .assignment-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .assignment-item .date {
+        min-width: auto;
+        font-size: 0.9em;
+    }
+
+    .assignment-item .title {
+        font-size: 1em;
+    }
+}
+
+/* スクロールインジケーター */
+.scroll-indicator {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    animation: fadeInOut 2s ease-in-out infinite;
+}
+
+.scroll-arrow {
+    width: 30px;
+    height: 30px;
+    border-right: 3px solid #fff;
+    border-bottom: 3px solid #fff;
+    transform: rotate(45deg);
+    animation: bounce 2s infinite;
+}
+
+.scroll-text {
+    color: #fff;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0) rotate(45deg);
+    }
+    40% {
+        transform: translateY(-20px) rotate(45deg);
+    }
+    60% {
+        transform: translateY(-10px) rotate(45deg);
+    }
+}
+
+@keyframes fadeInOut {
+    0%, 100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* スクロール時にインジケーターを非表示 */
+.scroll-indicator.hide {
+    display: none;
+}
+
+/* Newバッジのスタイル */
+.new-badge {
+    display: inline-block;
+    background: #ff3366;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Exploreボタンのリンクスタイル */
+.explore-btn {
+    padding: 15px 30px;
+    font-size: 18px;
+    color: #fff;
+    background: transparent;
+    border: 2px solid #fff;
+    border-radius: 30px;
+    cursor: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.explore-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.explore-btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: 0.5s;
+}
+
+.explore-btn:hover:before {
+    left: 100%;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+    .new-badge {
+        font-size: 0.7em;
+        padding: 2px 6px;
+    }
+    
+    .explore-btn {
+        font-size: 16px;
+        padding: 12px 24px;
+    }
+}
