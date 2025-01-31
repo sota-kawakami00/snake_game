@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <title>Enhanced Snake Game</title>
+    <style>
+        :root {
+            --bg-primary: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #666;
+            --accent-primary: #4CAF50;
+            --accent-secondary: #2196F3;
+            --danger: #f44336;
+            --canvas-bg: #ecf0f1;
+            --snake-color: #27ae60;
+            --food-normal: #e74c3c;
+            --food-speed: #f1c40f;
+            --food-bonus: #8e44ad;
+            --food-shrink: #1abc9c;
+            --button-hover: #388E3C;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --canvas-bg: #2d2d2d;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .game-area {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .game-panel {
+            flex: 1;
+        }
+
+        .info-panel {
+            flex: 1;
+            padding: 20px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: var(--bg-secondary);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        canvas {
+            background: var(--canvas-bg);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+
+        .controls h3 {
+            margin-top: 0;
+            color: var(--text-primary);
+        }
+
+        .controls ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .controls li {
+            margin: 10px 0;
+            padding: 5px 0;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        #pauseButton {
+            background: var(--accent-secondary);
+        }
+
+        #resetButton {
+            background: var(--danger);
+        }
+
+        .food-type {
+            margin: 15px 0;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .food-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .food-info {
+            flex: 1;
+        }
+
+        .food-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .food-description {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .ranking {
+            margin-top: 20px;
+        }
+
+        .ranking-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            margin: 8px 0;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        .coins-container {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .coin {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .coin-animation {
+            animation: coinPop 0.5s ease-out;
+        }
+
+        @keyframes coinPop {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            60% {
+                transform: scale(1.2) rotate(180deg);
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+                opacity: 1;
+            }
+        }
+
+        .auth-screen {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .auth-screen h2 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+        }
+
+        .auth-screen input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid var(--text-secondary);
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .auth-screen button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .auth-screen button:hover {
+            background: var(--button-hover);
+        }
+
+        .auth-message {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .auth-message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .auth-message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Email登録モーダル */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .auth-modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .auth-modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid var(--text-secondary);
+            border-radius: 5px;
+        }
+
+        .auth-modal button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .auth-modal button:hover {
+            background: var(--button-hover);
+        }
+
+        /* メッセージ表示用 */
+        .message {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <!-- 認証画面 -->
+    <div id="authScreen" class="auth-screen">
+        <h2>スネークゲーム</h2>
+        <p>ゲームを開始するにはログインしてください</p>
+        <div id="initialAuthMessage" class="auth-message"></div>
+        <input type="email" id="initialEmailInput" placeholder="メールアドレス">
+        <button onclick="sendInitialSignInLink()">認証メールを送信</button>
+    </div>
+
+    <!-- ゲームコンテナ -->
+    <div id="gameContainer" class="game-container">
+        <!-- コイン表示エリア -->
+        <div class="coins-container">
+            <div class="coin">0</div>
+            <span>コイン</span>
+        </div>
+
+        <div class="button-container">
+            <button id="pauseButton" class="button">一時停止</button>
+            <button id="resetButton" class="button">リセット</button>
+        </div>
+
+        <div class="game-area">
+            <div class="game-panel">
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">スコア</div>
+                        <div class="stat-value" id="score">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">長さ</div>
+                        <div class="stat-value" id="length">5</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">スピード</div>
+                        <div class="stat-value" id="speed">100ms</div>
+                    </div>
+                </div>
+                <canvas id="gameCanvas" width="400" height="400"></canvas>
+            </div>
+
+            <div class="info-panel">
+                <h2>エサの種類と効果</h2>
+                <div class="food-type">
+                    <div class="food-color" style="background: var(--food-normal)"></div>
+                    <div class="food-info">
+                        <div class="food-title">通常エサ (60%)</div>
+                        <div class="food-description">
+                            基本的なエサ。長さが1増え、100ポイント獲得。
+                            ゲームの基本となる最も一般的なエサ。
+                        </div>
+                    </div>
+                </div>
+                <div class="food-type">
+                    <div class="food-color" style="background: var(--food-speed)"></div>
+                    <div class="food-info">
+                        <div class="food-title">スピードエサ (20%)</div>
+                        <div class="food-description">
+                            一時的にスピードが2倍に上昇。長さは変わらず、200ポイント獲得。
+                            リスクとリワードのバランスを取るための要素。
+                        </div>
+                    </div>
+                </div>
+                <div class="food-type">
+                    <div class="food-color" style="background: var(--food-bonus)"></div>
+                    <div class="food-info">
+                        <div class="food-title">ボーナスエサ (15%)</div>
+                        <div class="food-description">
+                            長さが2増え、300ポイント獲得。
+                            レアアイテムとして高得点を狙える要素。
+                        </div>
+                    </div>
+                </div>
+                <div class="food-type">
+                    <div class="food-color" style="background: var(--food-shrink)"></div>
+                    <div class="food-info">
+                        <div class="food-title">縮小エサ (5%)</div>
+                        <div class="food-description">
+                            長さが半分になり、400ポイント獲得。
+                            ピンチの時の逆転要素として機能。
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <h3>操作方法</h3>
+                    <ul>
+                        <li>➡️ 矢印キー: ヘビの移動</li>
+                        <li>⏸️ スペース: 一時停止/再開</li>
+                        <li>🔄 R: ゲームリセット</li>
+                        <li>⚡ エサの効果は自動的に適用されます</li>
+                    </ul>
+                </div>
+
+                <div class="ranking">
+                    <h3>ランキング</h3>
+                    <ul id="rankingList" class="ranking-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email登録モーダル -->
+    <div class="auth-modal" id="authModal">
+        <div class="auth-modal-content">
+            <h2>コインを獲得しました！</h2>
+            <p>コインを保存するためにメールアドレスを登録してください。</p>
+            <div id="authMessage" class="message" style="display: none;"></div>
+            <input type="email" id="emailInput" placeholder="メールアドレス">
+            <button onclick="sendSignInLink()">認証メールを送信</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Firebaseの初期化
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { 
+            getAuth,
+            sendSignInLinkToEmail,
+            isSignInWithEmailLink,
+            signInWithEmailLink
+        } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
+        import { 
+            getFirestore,
+            doc,
+            setDoc,
+            getDoc,
+            updateDoc
+        } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+
+        // Firebaseの設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyCa4OdyDw5stXFQnz2TE2Ea9l53VXl99NE",
+            authDomain: "snake-game-677e8.firebaseapp.com",
+            databaseURL: "https://snake-game-677e8-default-rtdb.firebaseio.com",
+            projectId: "snake-game-677e8",
+            storageBucket: "snake-game-677e8.firebaseapp.com",
+            messagingSenderId: "533079587191",
+            appId: "1:533079587191:web:890ad2997627b171aa4972"
+        };
+
+        // Firebase初期化
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // グローバル変数
+        window.userCoins = 0;
+        window.isAuthenticated = false;
+
+        // 初期認証のEmail Link設定
+        const actionCodeSettings = {
+            url: 'http://www.edu.ice.ous.ac.jp/~t22j248/kadai8/kadai8.html',
+            handleCodeInApp: true
+        };
+
+        // 初期認証メール送信
+        window.sendInitialSignInLink = async function() {
+            const email = document.getElementById('initialEmailInput').value;
+            if (!email) {
+                showInitialAuthMessage('メールアドレスを入力してください', 'error');
+                return;
+            }
+
+            try {
+                await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+                window.localStorage.setItem('emailForSignIn', email);
+                showInitialAuthMessage('認証メールを送信しました。メールをご確認ください。', 'success');
+            } catch (error) {
+                showInitialAuthMessage('エラーが発生しました: ' + error.message, 'error');
+            }
+        };
+
+        // 初期認証メッセージ表示
+        function showInitialAuthMessage(message, type) {
+            const messageDiv = document.getElementById('initialAuthMessage');
+            messageDiv.textContent = message;
+            messageDiv.className = `auth-message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+        // Email Link認証の確認と処理
+        async function checkEmailLink() {
+            if (isSignInWithEmailLink(auth, window.location.href)) {
+                let email = window.localStorage.getItem('emailForSignIn');
+                if (!email) {
+                    email = window.prompt('認証を完了するためにメールアドレスを入力してください');
+                }
+
+                try {
+                    const result = await signInWithEmailLink(auth, email, window.location.href);
+                    window.localStorage.removeItem('emailForSignIn');
+                    
+                    // ユーザーデータの作成/更新
+                    await setDoc(doc(db, 'users', result.user.uid), {
+                        email: email,
+                        coins: 0,
+                        createdAt: new Date()
+                    }, { merge: true });
+
+                    window.isAuthenticated = true;
+                    showGameScreen();
+                    await loadUserData();
+                } catch (error) {
+                    showInitialAuthMessage('認証に失敗しました: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // ユーザーデータの読み込み
+        async function loadUserData() {
+            if (auth.currentUser) {
+                try {
+                    const docSnap = await getDoc(doc(db, 'users', auth.currentUser.uid));
+                    if (docSnap.exists()) {
+                        window.userCoins = docSnap.data().coins;
+                        updateCoinsDisplay(window.userCoins);
+                    }
+                } catch (error) {
+                    console.error('ユーザーデータの取得に失敗しました:', error);
+                }
+            }
+        }
+
+        // ゲーム画面の表示
+        function showGameScreen() {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+        }
+
+        // 認証状態の監視
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                window.isAuthenticated = true;
+                showGameScreen();
+                await loadUserData();
+            } else {
+                window.isAuthenticated = false;
+                document.getElementById('authScreen').style.display = 'block';
+                document.getElementById('gameContainer').style.display = 'none';
+            }
+        });
+
+        // コインの更新と保存
+        window.updateCoins = async function(newCoins) {
+            if (!auth.currentUser) return;
+
+            try {
+                await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+                    coins: newCoins
+                });
+                window.userCoins = newCoins;
+                updateCoinsDisplay(newCoins);
+            } catch (error) {
+                console.error('コインの更新に失敗しました:', error);
+            }
+        };
+
+        // コイン表示の更新
+        function updateCoinsDisplay(coins) {
+            const coinDisplay = document.querySelector('.coin');
+            if (coinDisplay) {
+                coinDisplay.classList.remove('coin-animation');
+                void coinDisplay.offsetWidth;
+                coinDisplay.classList.add('coin-animation');
+                coinDisplay.textContent = coins;
+            }
+        }
+
+        // スコアに基づくコイン付与
+        window.checkAndAwardCoins = async function(score) {
+            if (!auth.currentUser) return;
+
+            let coinsToAward = 0;
+            if (score >= 2000) {
+                coinsToAward = 2;
+            } else if (score >= 1000) {
+                coinsToAward = 1;
+            }
+            
+            if (coinsToAward > 0) {
+                const newCoins = window.userCoins + coinsToAward;
+                await updateCoins(newCoins);
+            }
+        };
+
+        // ページロード時に認証チェック
+        checkEmailLink();
+
+        // 既存のゲームロジック
+        let gameState = {
+            snake: [
+                {x: 200, y: 200},
+                {x: 190, y: 200},
+                {x: 180, y: 200},
+                {x: 170, y: 200},
+                {x: 160, y: 200}
+            ],
+            food: null,
+            dx: 10,
+            dy: 0,
+            score: 0,
+            speedBoost: 0,
+            baseSpeed: 100,
+            isPaused: false,
+            isGameOver: false
+        };
+
+        // 定数定義
+        const FOOD_TYPES = {
+            NORMAL: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--food-normal'),
+                probability: 0.6,
+                points: 100,
+                effect: (snake, state) => {
+                    snake.push({...snake[snake.length - 1]});
+                    return state;
+                }
+            },
+            SPEED: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--food-speed'),
+                probability: 0.2,
+                points: 200,
+                effect: (snake, state) => {
+                    state.speedBoost = Date.now() + 5000;
+                    return state;
+                }
+            },
+            BONUS: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--food-bonus'),
+                probability: 0.15,
+                points: 300,
+                effect: (snake, state) => {
+                    snake.push({...snake[snake.length - 1]});
+                    snake.push({...snake[snake.length - 1]});
+                    return state;
+                }
+            },
+            SHRINK: {
+                color: getComputedStyle(document.documentElement).getPropertyValue('--food-shrink'),
+                probability: 0.05,
+                points: 400,
+                effect: (snake, state) => {
+                    const newLength = Math.max(3, Math.floor(snake.length / 2));
+                    snake.splice(newLength);
+                    return state;
+                }
+            }
+        };
+
+        // DOM要素
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const pauseButton = document.getElementById('pauseButton');
+        const resetButton = document.getElementById('resetButton');
+
+        // ゲーム関数
+        function createFood() {
+            const rand = Math.random();
+            let cumProb = 0;
+            let selectedType = null;
+            
+            for (const [type, data] of Object.entries(FOOD_TYPES)) {
+                cumProb += data.probability;
+                if (rand <= cumProb && !selectedType) {
+                    selectedType = type;
+                }
+            }
+
+            const x = Math.floor(Math.random() * (canvas.width / 10)) * 10;
+            const y = Math.floor(Math.random() * (canvas.height / 10)) * 10;
+
+            const isOnSnake = gameState.snake.some(part => part.x === x && part.y === y);
+            if (isOnSnake) {
+                return createFood();
+            }
+
+            gameState.food = { x, y, type: selectedType };
+        }
+
+        function updateStats() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('length').textContent = gameState.snake.length;
+            const currentSpeed = Date.now() < gameState.speedBoost ? 
+                gameState.baseSpeed / 2 : gameState.baseSpeed;
+            document.getElementById('speed').textContent = `${currentSpeed}ms`;
+        }
+
+        function drawGame() {
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg');
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const snakeColor = getComputedStyle(document.documentElement).getPropertyValue('--snake-color');
+            gameState.snake.forEach(part => {
+                ctx.fillStyle = snakeColor;
+                ctx.fillRect(part.x, part.y, 10, 10);
+            });
+
+            if (gameState.food) {
+                ctx.fillStyle = FOOD_TYPES[gameState.food.type].color;
+                ctx.fillRect(gameState.food.x, gameState.food.y, 10, 10);
+            }
+
+            if (gameState.isPaused) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "white";
+                ctx.font = "30px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("一時停止中", canvas.width/2, canvas.height/2);
+            }
+        }
+
+        function advanceSnake() {
+            const head = {
+                x: gameState.snake[0].x + gameState.dx,
+                y: gameState.snake[0].y + gameState.dy
+            };
+
+            gameState.snake.unshift(head);
+
+            const didEatFood = head.x === gameState.food.x && head.y === gameState.food.y;
+            if (didEatFood) {
+                const foodType = FOOD_TYPES[gameState.food.type];
+                gameState.score += foodType.points;
+                gameState = foodType.effect(gameState.snake, gameState);
+                createFood();
+                updateStats();
+            } else {
+                gameState.snake.pop();
+            }
+        }
+
+        async function didGameEnd() {
+    const head = gameState.snake[0];
+
+    // 壁との衝突をチェック
+    if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
+        if (!gameState.isGameOver) {
+            await checkAndAwardCoins(gameState.score); // asyncを追加
+        }
+        return true;
+    }
+
+    // 自分自身との衝突をチェック
+    for (let i = 1; i < gameState.snake.length; i++) {
+        if (head.x === gameState.snake[i].x && head.y === gameState.snake[i].y) {
+            if (!gameState.isGameOver) {
+                await checkAndAwardCoins(gameState.score); // asyncを追加
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
+
+        function updateRanking() {
+            let rankings = JSON.parse(localStorage.getItem('snakeRankings') || '[]');
+            rankings.push({
+                score: gameState.score,
+                length: gameState.snake.length,
+                date: new Date().toLocaleDateString(),
+                type: gameState.food ? gameState.food.type : 'NORMAL'
+            });
+            rankings.sort((a, b) => b.score - a.score);
+            rankings = rankings.slice(0, 5);
+            localStorage.setItem('snakeRankings', JSON.stringify(rankings));
+            displayRankings();
+        }
+
+        function displayRankings() {
+            const rankings = JSON.parse(localStorage.getItem('snakeRankings') || '[]');
+            const rankingList = document.getElementById('rankingList');
+            rankingList.innerHTML = '';
+            
+            rankings.forEach((ranking, index) => {
+                const li = document.createElement('li');
+                li.className = 'ranking-item';
+                li.innerHTML = `
+                    <span>${index + 1}位</span>
+                    <span>${ranking.score}点</span>
+                    <span>長さ: ${ranking.length}</span>
+                    <span>${ranking.date}</span>
+                `;
+                rankingList.appendChild(li);
+            });
+        }
+
+        function resetGame() {
+            gameState = {
+                snake: [
+                    {x: 200, y: 200},
+                    {x: 190, y: 200},
+                    {x: 180, y: 200},
+                    {x: 170, y: 200},
+                    {x: 160, y: 200}
+                ],
+                food: null,
+                dx: 10,
+                dy: 0,
+                score: 0,
+                speedBoost: 0,
+                baseSpeed: 100,
+                isPaused: false,
+                isGameOver: false
+            };
+            
+            createFood();
+            updateStats();
+            drawGame();
+        }
+
+        function togglePause() {
+            if (!gameState.isGameOver) {
+                gameState.isPaused = !gameState.isPaused;
+                pauseButton.textContent = gameState.isPaused ? "再開" : "一時停止";
+                drawGame();
+            }
+        }
+
+        function gameLoop() {
+            if (!gameState.isGameOver && !gameState.isPaused) {
+                if (didGameEnd()) {
+                    gameState.isGameOver = true;
+                    updateRanking();
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = "white";
+                    ctx.font = "30px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText("ゲームオーバー!", canvas.width/2, canvas.height/2 - 20);
+                    ctx.font = "20px Arial";
+                    ctx.fillText(`スコア: ${gameState.score}`, canvas.width/2, canvas.height/2 + 20);
+                    return;
+                }
+
+                advanceSnake();
+                drawGame();
+            }
+
+            const currentSpeed = Date.now() < gameState.speedBoost ? 
+                gameState.baseSpeed / 2 : gameState.baseSpeed;
+            setTimeout(gameLoop, currentSpeed);
+        }
+
+        // キーボードイベントの処理
+        document.addEventListener('keydown', (event) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(event.key)) {
+                event.preventDefault();
+            }
+            
+            if (gameState.isGameOver) return;
+
+            switch(event.key) {
+                case ' ':
+                    event.preventDefault();
+                    togglePause();
+                    break;
+                case 'r':
+                case 'R':
+                    resetGame();
+                    break;
+                case 'ArrowUp':
+                    if (gameState.dy === 0) {
+                        gameState.dx = 0;
+                        gameState.dy = -10;
+                    }
+                    break;
+                case 'ArrowDown':
+                    if (gameState.dy === 0) {
+                        gameState.dx = 0;
+                        gameState.dy = 10;
+                    }
+                    break;
+                case 'ArrowLeft':
+                    if (gameState.dx === 0) {
+                        gameState.dx = -10;
+                        gameState.dy = 0;
+                    }
+                    break;
+                case 'ArrowRight':
+                    if (gameState.dx === 0) {
+                        gameState.dx = 10;
+                        gameState.dy = 0;
+                    }
+                    break;
+            }
+        });
+
+        // ボタンイベントの設定
+        pauseButton.addEventListener('click', togglePause);
+        resetButton.addEventListener('click', resetGame);
+
+        // ゲーム開始
+        createFood();
+        displayRankings();
+        gameLoop();
+    </script>
+    </script>
+</body>
+</html>
